@@ -1,0 +1,63 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to bottom right, #2c3e50, #4ca1af);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.card {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  width: 350px;
+  color: #fff;
+  backdrop-filter: blur(10px);
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  border: 3px solid #fff;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin: 0.5rem 0;
+}
+
+.tagline {
+  font-size: 1rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.description {
+  font-size: 0.95rem;
+  color: #d1d1d1;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.links a {
+  display: block;
+  background-color: #1f2e3d;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.links a:hover {
+  background-color: #4ca1af;
+}
