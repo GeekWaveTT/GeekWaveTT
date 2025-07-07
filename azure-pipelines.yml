@@ -4,7 +4,7 @@ trigger:
       - main
 
 pool:
-  name: Default  # (your self-hosted agent pool name)
+  name: PredatorAgentPool
 
 variables:
   IMAGE_NAME: "portfolio-site"
