@@ -21,7 +21,7 @@ stages:
             inputs:
               targetType: inline
               script: |
-                cd portfolio-site
+                cd portfolio-website
                 docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
   - stage: Deploy
