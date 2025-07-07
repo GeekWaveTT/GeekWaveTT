@@ -22,7 +22,7 @@ stages:
               targetType: inline
               script: |
                 cd portfolio-site
-                docker build -t portfolio-site:latest .
+                docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
   - stage: Deploy
     displayName: "Deploy to Minikube"
