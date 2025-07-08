@@ -1,0 +1,28 @@
+name: Sync GitHub Repo to Azure Repos
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync-to-azure:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout GitHub Repo
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # important for full history and force-push
+
+    - name: Configure Git Identity
+      run: |
+        git config --global user.name "GitHub Actions Sync Bot"
+        git config --global user.email "github-sync@bot.dev"
+
+    - name: Add Azure DevOps Remote and Push
+      env:
+        AZURE_PAT: ${{ secrets.AZURE_PAT }}
+      run: |
+        git remote add azure https://username:${AZURE_PAT}@dev.azure.com/GeekWaveTT/GeekWaveTT/_git/GeekWaveTT
+        git push azure HEAD:main --force
