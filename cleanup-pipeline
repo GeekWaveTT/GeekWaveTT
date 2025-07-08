@@ -1,0 +1,19 @@
+- stage: Cleanup
+  displayName: "Cleanup Kubernetes and Docker Resources"
+  jobs:
+    - job: CleanupResources
+      steps:
+        - task: Bash@3
+          displayName: "Delete Kubernetes namespace 'portfolio'"
+          inputs:
+            targetType: inline
+            script: |
+              kubectl get namespace portfolio && kubectl delete namespace portfolio || echo "Namespace 'portfolio' does not exist"
+
+        - task: Bash@3
+          displayName: "Remove Docker image from Minikube"
+          inputs:
+            targetType: inline
+            script: |
+              eval $(minikube docker-env)
+              docker image inspect portfolio-site:latest && docker rmi portfolio-site:latest || echo "Docker image 'portfolio-site:latest' not found"
