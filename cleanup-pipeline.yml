@@ -5,6 +5,10 @@ trigger:
   paths:
     include:
       - 'cleanup-pipeline.yml'
+      
+pool:
+  name: PredatorAgentPool
+
 stages:
   - stage: Cleanup
     displayName: "Cleanup Kubernetes and Docker Resources"
