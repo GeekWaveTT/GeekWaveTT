@@ -22,6 +22,7 @@ stages:
               targetType: inline
               script: |
                 cd portfolio-website
+                eval $(minikube docker-env)
                 docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
   - stage: Deploy
@@ -34,4 +35,5 @@ stages:
             inputs:
               targetType: inline
               script: |
-                kubectl apply -f k8s-manifests/ -n portfolio || kubectl create namespace portfolio && kubectl apply -f k8s-manifests/ -n portfolio
+                kubectl get namespace portfolio || kubectl create namespace portfolio && kubectl apply -f k8s-manifests/ -n portfolio
+
