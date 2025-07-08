@@ -7,26 +7,34 @@ pool:
   name: PredatorAgentPool
 
 variables:
-  - group: GitCreds          # Your variable group holding GIT_PAT
+  - group: GitCreds          # Contains GIT_PAT
   - name: GITHUB_REPO_URL
     value: https://github.com/GeekWaveTT/GeekWaveTT.git
 
 steps:
   - checkout: self
     clean: true
-    fetchDepth: 0 
+    fetchDepth: 0
+
   - task: Bash@3
-    displayName: "Sync Azure Repo to GitHub"
+    displayName: "Sync Azure Repo to GitHub (Safe Merge)"
     inputs:
       targetType: inline
       script: |
+        echo "▶️ Configuring Git Identity"
         git config --global user.name "AzureDevOps Sync Bot"
         git config --global user.email "sync-bot@sync.dev"
-        
-        # Add GitHub remote using PAT
+
+        echo "🔗 Adding GitHub Remote"
         git remote add github https://$(GIT_PAT)@github.com/GeekWaveTT/GeekWaveTT.git
 
-        # Push to GitHub
-        git push github HEAD:main --force
+        echo "🔄 Fetching GitHub 'main'"
+        git fetch github main
+
+        echo "🔀 Merging GitHub 'main' into Azure DevOps 'main'"
+        git merge github/main --no-edit || echo '⚠️ Merge conflict occurred, please resolve manually.'
+
+        echo "⬆️ Pushing merged result to GitHub"
+        git push github HEAD:main
     env:
       GIT_PAT: $(GIT_PAT)
