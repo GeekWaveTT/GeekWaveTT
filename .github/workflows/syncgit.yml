@@ -1,4 +1,4 @@
-name: Sync GitHub Repo to Azure Repos
+name: Sync GitHub Repo to Azure Repos (Safe Merge)
 
 on:
   push:
@@ -13,16 +13,25 @@ jobs:
     - name: Checkout GitHub Repo
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0  # important for full history and force-push
+        fetch-depth: 0  # important for full history and proper merging
 
     - name: Configure Git Identity
       run: |
         git config --global user.name "GitHub Actions Sync Bot"
         git config --global user.email "github-sync@bot.dev"
 
-    - name: Add Azure DevOps Remote and Push
+    - name: Add Azure DevOps Remote, Fetch & Merge
       env:
         AZURE_PAT: ${{ secrets.AZURE_PAT }}
       run: |
+        echo "🔗 Adding Azure Remote"
         git remote add azure https://username:${AZURE_PAT}@dev.azure.com/GeekWaveTT/GeekWaveTT/_git/GeekWaveTT
-        git push azure HEAD:main --force
+
+        echo "🔄 Fetching from Azure DevOps"
+        git fetch azure main || echo "⚠️ Azure main branch may not exist yet."
+
+        echo "🔀 Merging Azure → GitHub changes"
+        git merge azure/main --no-edit || echo "⚠️ Merge conflict — manual resolution needed."
+
+        echo "⬆️ Pushing to Azure DevOps"
+        git push azure HEAD:main
