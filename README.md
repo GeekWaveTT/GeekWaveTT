@@ -6,7 +6,7 @@
 This project demonstrates a complete CI/CD pipeline using modern DevOps tools and practices. It includes:
 
 - **GitHub** for source control
-- **Azure DevOps Pipelines** triggered via GitHub webhooks
+- **Azure DevOps Pipelines**
 - **Self-hosted agent** running on a local machine
 - **Terraform** for infrastructure as code
 - **Kubernetes** (local deployment via Minikube or K3s)
