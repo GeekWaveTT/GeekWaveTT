@@ -1,4 +1,4 @@
-- stage: Cleanup
+stage: Cleanup
   displayName: "Cleanup Kubernetes and Docker Resources"
   jobs:
     - job: CleanupResources
