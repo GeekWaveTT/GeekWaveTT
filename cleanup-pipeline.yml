@@ -1,3 +1,10 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'cleanup-pipeline.yml'
 stages:
   - stage: Cleanup
     displayName: "Cleanup Kubernetes and Docker Resources"
