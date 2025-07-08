@@ -4,8 +4,7 @@ trigger:
       - main
   paths:
     include:
-      - 'portfolio-website/**'
-      - 'k8s-manifests/**'
+      - 'azure-pipelines.yml'
     exclude:
       - 'cleanup-pipeline.yml'
 
