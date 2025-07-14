@@ -1,0 +1,61 @@
+# My Helm + Grafana Deployment for local cluster.
+# https://aka.ms/yaml
+
+trigger: none
+
+pool:
+  name: PredatorAgentPool  # my self hosted agent pool
+
+variables:
+  NAMESPACE: monitoring
+
+stages:
+- stage: DeployMonitoring
+  displayName: "Install Helm + Deploy Grafana to Minikube"
+  jobs:
+  - job: InstallHelm
+    displayName: "Check Minikube + Install Helm"
+    steps:
+    - task: Bash@3
+      displayName: "Check if Minikube is Running"
+      inputs:
+        targetType: 'inline'
+        script: |
+          echo "Checking Minikube status..."
+          if ! minikube status | grep -q "host: Running"; then
+            echo "❌ Minikube is not running!"
+            exit 1
+          else
+            echo "✅ Minikube is running."
+          fi
+
+    - task: Bash@3
+      displayName: "Helm Check + Install Script"
+      inputs:
+        targetType: 'inline'
+        script: |
+          if ! command -v helm &> /dev/null; then
+            echo "Helm not found. Installing..."
+            curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+            sudo apt-get install apt-transport-https --yes
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+            sudo apt-get update
+            sudo apt-get install -y helm
+          else
+            echo "✅ Helm is already installed."
+          fi
+
+  - job: DeployGrafana
+    displayName: "Deploy Grafana with Helm"
+    dependsOn: InstallHelm
+    steps:
+    - task: Bash@3
+      displayName: "Install Grafana using Helm"
+      inputs:
+        targetType: 'inline'
+        script: |
+          echo "Adding Grafana Helm repo"
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+          echo "Installing Grafana..."
+          helm upgrade --install grafana grafana/grafana --namespace $(NAMESPACE) --create-namespace
