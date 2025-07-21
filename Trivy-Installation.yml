@@ -28,6 +28,24 @@ stages:
   - job: InstallTrivyHelm
     steps:
     - task: Bash@3
+      displayName: "Check if Minikube is Running"
+      inputs:
+        targetType: 'inline'
+        script: |
+            echo "Checking Minikube status..."
+            if ! minikube status | grep -q "host: Running"; then
+            echo "❌ Minikube is not running!"
+            echo "starting Minikube!!✅"
+            minikube start
+            else
+              echo "✅ Minikube is running."
+            fi
+- stage: DeployTrivyK8
+  displayName: DeployK8Trivy
+  jobs:
+  - job: DeployTrivyHelm
+    steps:
+    - task: Bash@3
       displayName: "Trivy Helm Repo Add+Deploy"
       inputs:
         targetType: "inline"
