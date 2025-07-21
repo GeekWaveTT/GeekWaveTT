@@ -1,16 +1,16 @@
-#Pipeline to install trivy on local agent.
+#Pipeline to install trivy on local agent and K8 Cluster on Minikube.
 
-trigger:
-- main
+trigger: None
 
 pool:
   name: PredatorAgentPool
 
-steps:
-
-  - task: Bash@3
-    displayName: "TrivyPipe- Install Trivy on Agent"
-    inputs:
+stages:
+  steps:
+    - stage: Trivy for Agent
+    - task: Bash@3
+      displayName: "TrivyPipe- Install Trivy on Agent"
+      inputs:
       targetType: 'inline'
       script: |
         sudo apt-get install wget apt-transport-https gnupg lsb-release
@@ -18,5 +18,16 @@ steps:
         echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
         sudo apt-get update
         sudo apt-get install trivy
+#Helm Installation for Trivy
+    - stage: Trivy for K8 Cluster
+    - task: Bash@3
+      displayName: "Trivy Helm Repo Add+Deploy"
+      inputs:
+      targetType: "inline"
+      script: |
+      helm repo add aquasecurity https://aquasecurity.github.io/helm-charts/
+      helm repo update
+      helm search repo trivy
+      helm install my-trivy aquasecurity/trivy
 
 
