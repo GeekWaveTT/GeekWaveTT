@@ -13,6 +13,7 @@ This project demonstrates a complete CI/CD pipeline using modern DevOps tools an
 - **Docker Hub** as container registry
 - **Grafana** for monitoring and observability
 - **AI chatbot** deployed as a microservice
+ ** Trivy ** containter scanning.
 
 The purpose of this repository is to showcase my skills in setting up scalable, automated DevOps workflows in a hybrid (local + cloud-ready) environment. It serves as a hands-on, self-contained portfolio to demonstrate:
 - CI/CD pipelines
