@@ -1,33 +1,38 @@
 #Pipeline to install trivy on local agent and K8 Cluster on Minikube.
 
-trigger: None
+trigger: none
 
 pool:
   name: PredatorAgentPool
 
 stages:
-  steps:
-    - stage: Trivy for Agent
+- stage: TrivyforAgent
+  displayName: "Install Trivy on Agent"
+  jobs:
+  - job: InstallTrivy
+    steps:
     - task: Bash@3
       displayName: "TrivyPipe- Install Trivy on Agent"
       inputs:
-      targetType: 'inline'
-      script: |
-        sudo apt-get install wget apt-transport-https gnupg lsb-release
-        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-        echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-        sudo apt-get update
-        sudo apt-get install trivy
+        targetType: 'inline'
+        script: |
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
 #Helm Installation for Trivy
-    - stage: Trivy for K8 Cluster
+- stage: TrivyforK8
+  displayName: TrivyHelmK8
+  jobs:
+  - job: InstallTrivyHelm
+    steps:
     - task: Bash@3
       displayName: "Trivy Helm Repo Add+Deploy"
       inputs:
-      targetType: "inline"
-      script: |
-      helm repo add aquasecurity https://aquasecurity.github.io/helm-charts/
-      helm repo update
-      helm search repo trivy
-      helm install my-trivy aquasecurity/trivy
-
-
+        targetType: "inline"
+        script: |
+          helm repo add aquasecurity https://aquasecurity.github.io/helm-charts/
+          helm repo update
+          helm search repo trivy
+          helm install my-trivy aquasecurity/trivy
