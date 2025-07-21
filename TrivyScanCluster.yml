@@ -1,24 +1,14 @@
 trigger: none
 
 pool:
-  name: PredatorAgentPool  # your self-hosted agent with kubectl access
+  name: PredatorAgentPool  # your agent with kubectl and trivy installed
 
 jobs:
-- job: TrivyClusterScan
+- job: TrivyScanAllImages
   displayName: "Scan all cluster images with Trivy"
   steps:
   - script: |
-      echo "Installing Trivy..."
-      sudo apt-get update -y
-      sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-
-      wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-      echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
-
-      sudo apt-get update -y
-      sudo apt-get install -y trivy
-
-      echo "Getting all container images in cluster..."
+      echo "Listing all container images in cluster..."
       images=$(kubectl get pods --all-namespaces -o jsonpath="{..image}" | tr -s '[[:space:]]' '\n' | sort | uniq)
 
       echo "Images found:"
@@ -29,11 +19,11 @@ jobs:
       for image in $images; do
         echo "Scanning $image ..."
         filename=$(echo $image | tr '/:' '__')
-        trivy image --format json --output trivy-reports/$filename.json $image
+        trivy image --format json --output trivy-reports/$filename.json $image || true
       done
 
-      echo "Scan complete. Reports saved in trivy-reports/"
-    displayName: "Install Trivy and Scan Cluster Images"
+      echo "Scan complete."
+    displayName: "Run Trivy scans"
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -41,4 +31,3 @@ jobs:
       ArtifactName: 'TrivyScanReports'
       publishLocation: 'Container'
     displayName: "Publish Trivy Scan Reports"
-
