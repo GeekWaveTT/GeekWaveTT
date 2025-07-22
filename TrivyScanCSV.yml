@@ -4,8 +4,8 @@ pool:
   name: PredatorAgentPool  # your agent with kubectl and trivy installed
 
 jobs:
-- job: TrivyScanCSV
-  displayName: "Scan all cluster images with Trivy and export CSV"
+- job: TrivyScanTable
+  displayName: "Scan all cluster images with Trivy and export table format"
   steps:
   - script: |
       echo "Listing all container images in cluster..."
@@ -19,15 +19,15 @@ jobs:
       for image in $images; do
         echo "Scanning $image ..."
         filename=$(echo $image | tr '/:' '__')
-        trivy image --format csv --output trivy-reports/$filename.csv $image || true
+        trivy image --format table --output trivy-reports/$filename.txt $image || true
       done
 
-      echo "CSV scan reports generated."
-    displayName: "Run Trivy scans with CSV output"
+      echo "Table scan reports generated."
+    displayName: "Run Trivy scans with table output"
 
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: 'trivy-reports'
-      ArtifactName: 'TrivyScanCSVReports'
+      ArtifactName: 'TrivyScanTableReports'
       publishLocation: 'Container'
-    displayName: "Publish Trivy CSV Scan Reports"
+    displayName: "Publish Trivy Table Scan Reports"
