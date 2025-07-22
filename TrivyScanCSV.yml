@@ -1,33 +1,26 @@
 trigger: none
 
 pool:
-  name: PredatorAgentPool  # your agent with kubectl and trivy installed
+  name: PredatorAgentPool  # Your agent with kubectl and trivy installed
 
 jobs:
-- job: TrivyScanTable
-  displayName: "Scan all cluster images with Trivy and export table format"
+- job: TrivyScanSARIF
+  displayName: "Scan all cluster images and publish SARIF results"
   steps:
   - script: |
-      echo "Listing all container images in cluster..."
+      mkdir -p trivy-reports
       images=$(kubectl get pods --all-namespaces -o jsonpath="{..image}" | tr -s '[[:space:]]' '\n' | sort | uniq)
 
-      echo "Images found:"
-      echo "$images"
-
-      mkdir -p trivy-reports
-
       for image in $images; do
-        echo "Scanning $image ..."
         filename=$(echo $image | tr '/:' '__')
-        trivy image --format table --output trivy-reports/$filename.txt $image || true
+        echo "Scanning $image ..."
+        trivy image --format sarif --output trivy-reports/$filename.sarif $image || true
       done
-
-      echo "Table scan reports generated."
-    displayName: "Run Trivy scans with table output"
+    displayName: "Run Trivy scans and output SARIF"
 
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: 'trivy-reports'
-      ArtifactName: 'TrivyScanTableReports'
+      ArtifactName: 'CodeAnalysisLogs'
       publishLocation: 'Container'
-    displayName: "Publish Trivy Table Scan Reports"
+    displayName: "Publish SARIF Reports"
