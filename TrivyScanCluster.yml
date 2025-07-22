@@ -5,7 +5,7 @@ pool:
 
 jobs:
 - job: TrivyScanAllImages
-  displayName: "Scan all cluster images with Trivy"
+  displayName: "Scan all cluster images with Trivy and export CSV"
   steps:
   - script: |
       echo "Listing all container images in cluster..."
@@ -19,15 +19,15 @@ jobs:
       for image in $images; do
         echo "Scanning $image ..."
         filename=$(echo $image | tr '/:' '__')
-        trivy image --format json --output trivy-reports/$filename.json $image || true
+        trivy image --format csv --output trivy-reports/$filename.csv $image || true
       done
 
-      echo "Scan complete."
-    displayName: "Run Trivy scans"
+      echo "CSV scan reports generated."
+    displayName: "Run Trivy scans with CSV output"
 
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: 'trivy-reports'
-      ArtifactName: 'TrivyScanReports'
+      ArtifactName: 'TrivyScanCSVReports'
       publishLocation: 'Container'
-    displayName: "Publish Trivy Scan Reports"
+    displayName: "Publish Trivy CSV Scan Reports"
