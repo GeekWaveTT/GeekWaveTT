@@ -9,6 +9,14 @@ variables:
 
 steps:
 - task: Bash@3
+  displayName: 'Install Git'
+  inputs:
+    targetType: 'inline'
+    script: |
+      sudo apt update
+      sudo apt install git-all
+      echo "Installed Git ✅"
+- task: Bash@3
   displayName: 'Install Docker,'
   inputs:
     targetType: 'inline'
