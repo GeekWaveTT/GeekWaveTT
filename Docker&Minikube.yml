@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  name: UbuntuAgent
+  name: UbuntuServer
 
 variables:
   MINIKUBE_VERSION: 'latest'
