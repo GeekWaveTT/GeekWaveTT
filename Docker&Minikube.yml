@@ -44,11 +44,11 @@ steps:
 - task: Bash@3
   displayName: 'Install Minikube'
   inputs:
-  targetType: 'inline'
-  script: |
-    echo "Minikube installation ✅
-    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
-    sudo dpkg -i minikube_latest_amd64.deb
-    echo "Minikube installation finished✅"
+    targetType: 'inline'
+    script: |
+      echo "Minikube installation ✅
+      curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
+      sudo dpkg -i minikube_latest_amd64.deb
+      echo "Minikube installation finished✅"
 
     
