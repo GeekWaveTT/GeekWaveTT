@@ -9,36 +9,46 @@ variables:
 
 steps:
 - task: Bash@3
-  displayName: 'Install Docker, kubectl, and Minikube'
+  displayName: 'Install Docker,'
   inputs:
     targetType: 'inline'
     script: |
-      set -e
-      echo "Updating Ubuntu..."
-      sudo apt update && sudo apt upgrade -y
+      sudo apt-get update
+      echo " Installing certificates and keyrings✅"
+      sudo apt-get install ca-certificates curl
+      sudo install -m 0755 -d /etc/apt/keyrings
+      sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+      sudo chmod a+r /etc/apt/keyrings/docker.asc
+      echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+      $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      sudo apt-get update
+      echo " Installing Docker Packages✅"
+      sudo docker run hello-world
+      echo "Finished docker installation ✅"
+- task: Bash@3
+  displayName: ' Install Kubectl '
+  inputs:
+    targetType: 'inline'
+    script: |
+      sudo apt-get update
+      sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+      curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
+      sudo apt-get update
+      echo "Installing Kubectl"
+      sudo apt-get install -y kubectl
+- task: Bash@3
+  displayName: 'Install Minikube'
+  inputs:
+  targetType: 'inline'
+  script: |
+    echo "Minikube installation ✅
+    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
+    sudo dpkg -i minikube_latest_amd64.deb
+    echo "Minikube installation finished✅"
 
-      echo "Installing dependencies..."
-      sudo apt install -y apt-transport-https ca-certificates curl software-properties-common gnupg lsb-release conntrack
-
-      echo "Installing Docker..."
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
-      https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-      sudo apt update
-      sudo apt install -y docker-ce docker-ce-cli containerd.io
-
-      echo "Installing kubectl..."
-      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-      sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-      kubectl version --client
-
-      echo "Installing Minikube..."
-      curl -LO https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-amd64
-      sudo install minikube-linux-amd64 /usr/local/bin/minikube
-      minikube version
-
-      echo "Starting Minikube with Docker driver..."
-      minikube start --driver=docker
-
-      echo "Checking Minikube nodes..."
-      kubectl get nodes
+    
