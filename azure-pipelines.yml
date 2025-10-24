@@ -1,12 +1,4 @@
-trigger:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - 'azure-pipelines.yml'
-    exclude:
-      - 'cleanup-pipeline.yml'
+trigger: none
 
 pool:
   name: UbuntuServer
