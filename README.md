@@ -25,5 +25,5 @@ The purpose of this repository is to showcase my skills in setting up scalable, 
 
 > 🚀 This repo is intended for learning, demonstration, and technical validation of DevOps capabilities.
 
-
+...
 -->
