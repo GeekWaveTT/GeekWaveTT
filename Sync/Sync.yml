@@ -26,6 +26,7 @@ steps:
         git config --global user.email "sync-bot@sync.dev"
 
         echo "🔗 Adding GitHub Remote"
+        git remote remove github 2>/dev/null || true
         git remote add github https://$(GIT_PAT)@github.com/GeekWaveTT/GeekWaveTT.git
 
         echo "🔄 Fetching GitHub 'main'"
