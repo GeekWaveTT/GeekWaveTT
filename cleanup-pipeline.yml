@@ -1,9 +1,5 @@
 trigger: none
 
-  paths:
-    include:
-      - 'cleanup-pipeline.yml'
-      
 pool:
   name: UbuntuServer
 
