@@ -9,7 +9,7 @@ trigger:
       - 'cleanup-pipeline.yml'
 
 pool:
-  name: PredatorAgentPool
+  name: UbuntuServer
 
 variables:
   IMAGE_NAME: "portfolio-site"
