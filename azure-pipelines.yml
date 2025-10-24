@@ -27,6 +27,32 @@ stages:
     jobs:
       - job: DeployToK8s
         steps:
+        - task: Bash@3
+        displayName: "Ensure Minikube is Running"
+        inputs:
+          targetType: 'inline'
+          script: |
+            set -euxo pipefail
+
+            echo "Checking Minikube status..."
+            # Get status of main components
+            MINIKUBE_STATUS=$(minikube status --format '{{.Host}} {{.Kubelet}} {{.APIServer}}')
+            echo "Minikube components: $MINIKUBE_STATUS"
+
+            if [[ "$MINIKUBE_STATUS" != "Running Running Running" ]]; then
+            echo "❌ Minikube is not fully running. Starting Minikube..."
+            minikube start --driver=docker
+            else
+            echo "✅ Minikube is fully running."
+            fi
+
+      # Ensure kubectl uses the correct kubeconfig
+      export KUBECONFIG=$HOME/.kube/config
+
+      # Optional: wait until nodes are ready to prevent connection errors
+      echo "Waiting for Minikube nodes to be ready..."
+      kubectl wait --for=condition=Ready nodes --all --timeout=120s
+
           - task: Bash@3
             displayName: "Apply Kubernetes Manifests"
             inputs:
