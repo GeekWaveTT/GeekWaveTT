@@ -1,69 +1,60 @@
 trigger: none   # Manual trigger only
+pr: none
 
 pool:
-  name: PredatorAgentPool   # Use your self-hosted agent pool
+  name: PredatorAgentPool
   
 
 variables:
   KUBE_NAMESPACE: 'portfolio'
-  MANIFEST_PATH: 'k8s'       # Folder containing Deployment, Service, Ingress YAMLs
-  DOMAIN: 'portfolio.local'
+  MANIFEST_PATH: 'main/k8s-manifests'  # Folder containing your manifests
   TLS_SECRET_NAME: 'portfolio-tls'
 
 steps:
 
-# 1️⃣ Checkout repo
-- task: Checkout@1
-  displayName: 'Checkout repository'
-
-# 2️⃣ Install mkcert (for TLS)
+# Single combined step for LAN IP, TLS, and deployment
 - script: |
+    echo "=== Starting local deployment pipeline ==="
+
+    # 1️⃣ Detect laptop LAN IP
+    LAN_IP=$(hostname -I | awk '{print $1}')
+    echo "Detected LAN IP: $LAN_IP"
+
+    # 2️⃣ Update Ingress host in manifest
+    echo "Updating Ingress host in manifest to LAN IP..."
+    sed -i "s/host: .*/host: $LAN_IP/" $(MANIFEST_PATH)/portfolio-ingress.yaml
+
+    # 3️⃣ Install mkcert if missing
     sudo apt-get update
     sudo apt-get install -y libnss3-tools
     mkcert -install || true
-  displayName: 'Install mkcert'
 
-# 3️⃣ Detect laptop LAN IP
-- script: |
-    LAN_IP=$(hostname -I | awk '{print $1}')
-    echo "##vso[task.setvariable variable=LAN_IP]$LAN_IP"
-    echo "Detected LAN IP: $LAN_IP"
-  displayName: 'Detect LAN IP'
-
-# 4️⃣ Generate TLS certificate
-- script: |
-    if [ ! -f "$(DOMAIN).pem" ] || [ ! -f "$(DOMAIN)-key.pem" ]; then
-      mkcert $(DOMAIN)
+    # 4️⃣ Generate TLS cert for LAN IP
+    if [ ! -f "${LAN_IP}.pem" ] || [ ! -f "${LAN_IP}-key.pem" ]; then
+        echo "Generating mkcert TLS certificate for $LAN_IP..."
+        mkcert $LAN_IP
     fi
-  displayName: 'Generate TLS certificate'
 
-# 5️⃣ Create/Update Kubernetes TLS secret
-- script: |
+    # 5️⃣ Create or update Kubernetes TLS secret
     kubectl --kubeconfig=$HOME/.kube/config get secret $(TLS_SECRET_NAME) -n $(KUBE_NAMESPACE) &> /dev/null
     if [ $? -eq 0 ]; then
-      echo "Deleting existing TLS secret..."
-      kubectl --kubeconfig=$HOME/.kube/config delete secret $(TLS_SECRET_NAME) -n $(KUBE_NAMESPACE)
+        echo "Deleting existing TLS secret..."
+        kubectl --kubeconfig=$HOME/.kube/config delete secret $(TLS_SECRET_NAME) -n $(KUBE_NAMESPACE)
     fi
+    echo "Creating TLS secret..."
     kubectl --kubeconfig=$HOME/.kube/config create secret tls $(TLS_SECRET_NAME) \
-      --cert=$(DOMAIN).pem \
-      --key=$(DOMAIN)-key.pem \
-      -n $(KUBE_NAMESPACE)
-  displayName: 'Create/Update TLS Secret'
+        --cert=${LAN_IP}.pem \
+        --key=${LAN_IP}-key.pem \
+        -n $(KUBE_NAMESPACE)
 
-# 6️⃣ Update Ingress host to LAN IP for network access
-- script: |
-    echo "Updating Ingress host to LAN IP $(LAN_IP) for LAN access..."
-    sed -i "s/host: .*/host: $(LAN_IP)/" $(MANIFEST_PATH)/portfolio-ingress.yaml
-  displayName: 'Update Ingress host to LAN IP'
-
-# 7️⃣ Apply Kubernetes manifests
-- script: |
+    # 6️⃣ Apply all manifests
+    echo "Applying all manifests from $(MANIFEST_PATH)..."
     kubectl --kubeconfig=$HOME/.kube/config apply -f $(MANIFEST_PATH) -n $(KUBE_NAMESPACE)
-  displayName: 'Apply Kubernetes Manifests'
 
-# 8️⃣ Verify deployment
-- script: |
+    # 7️⃣ Verify deployment
+    echo "Deployment complete. Verifying resources..."
     kubectl --kubeconfig=$HOME/.kube/config get all -n $(KUBE_NAMESPACE)
     kubectl --kubeconfig=$HOME/.kube/config get ingress -n $(KUBE_NAMESPACE)
-    echo "Your portfolio site should now be accessible at https://$(LAN_IP)"
-  displayName: 'Verify Deployment'
+    echo "Your portfolio site should now be accessible at https://$LAN_IP"
+
+  displayName: 'Deploy portfolio site with LAN IP + TLS'
