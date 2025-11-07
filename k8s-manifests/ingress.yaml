@@ -5,13 +5,13 @@ metadata:
   namespace: portfolio
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"  # optional HTTP->HTTPS
 spec:
   ingressClassName: nginx
   tls:
-
-      secretName: portfolio-tls
+    - secretName: portfolio-tls   # self-signed TLS secret for LAN IP
   rules:
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix
