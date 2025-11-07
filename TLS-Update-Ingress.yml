@@ -1,0 +1,68 @@
+trigger: none  # Manual trigger only
+pr: none       # No PR trigger
+
+pool:
+  name: PredatorAgentPool
+
+variables:
+  KUBE_NAMESPACE: 'portfolio'
+  MANIFEST_PATH: 'k8s'       # Folder with Deployment, Service, Ingress YAMLs
+  DOMAIN: 'portfolio.local'
+  TLS_SECRET_NAME: 'portfolio-tls'
+
+steps:
+# 1️⃣ Checkout repo
+- task: Checkout@1
+  displayName: 'Checkout repository'
+
+# 3️⃣ Install mkcert (for local TLS)
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y libnss3-tools
+    mkcert -install || true
+  displayName: 'Install mkcert'
+
+# 4️⃣ Detect host LAN IP
+- script: |
+    LAN_IP=$(hostname -I | awk '{print $1}')
+    echo "##vso[task.setvariable variable=LAN_IP]$LAN_IP"
+    echo "Detected LAN IP: $LAN_IP"
+  displayName: 'Detect LAN IP'
+
+# 5️⃣ Generate TLS certificate
+- script: |
+    if [ ! -f "$(DOMAIN).pem" ] || [ ! -f "$(DOMAIN)-key.pem" ]; then
+      mkcert $(DOMAIN)
+    fi
+  displayName: 'Generate TLS certificate'
+
+# 6️⃣ Create/Update TLS secret
+- script: |
+    kubectl get secret $(TLS_SECRET_NAME) -n $(KUBE_NAMESPACE) &> /dev/null
+    if [ $? -eq 0 ]; then
+      echo "Deleting existing TLS secret..."
+      kubectl delete secret $(TLS_SECRET_NAME) -n $(KUBE_NAMESPACE)
+    fi
+    kubectl create secret tls $(TLS_SECRET_NAME) \
+      --cert=$(DOMAIN).pem \
+      --key=$(DOMAIN)-key.pem \
+      -n $(KUBE_NAMESPACE)
+  displayName: 'Create/Update TLS Secret'
+
+# 7️⃣ Update Ingress host to LAN IP temporarily
+- script: |
+    echo "Updating Ingress host to LAN IP $(LAN_IP) for LAN access..."
+    sed -i "s/host: .*/host: $(LAN_IP)/" $(MANIFEST_PATH)/portfolio-ingress.yaml
+  displayName: 'Update Ingress host to LAN IP'
+
+# 8️⃣ Apply all Kubernetes manifests
+- script: |
+    kubectl apply -f $(MANIFEST_PATH) -n $(KUBE_NAMESPACE)
+  displayName: 'Apply Kubernetes Manifests'
+
+# 9️⃣ Verify deployment
+- script: |
+    kubectl get all -n $(KUBE_NAMESPACE)
+    kubectl get ingress -n $(KUBE_NAMESPACE)
+    echo "You can now access https://$(LAN_IP)"
+  displayName: 'Verify Deployment & LAN Access'
