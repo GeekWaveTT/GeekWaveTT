@@ -1,7 +1,7 @@
 trigger: none
 
 pool:
-  name: PredatorAgent
+  name: PredatorAgentPool
 
 variables:
   MINIKUBE_VERSION: 'latest'
