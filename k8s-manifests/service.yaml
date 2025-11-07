@@ -6,9 +6,13 @@ metadata:
 spec:
   selector:
     app: portfolio
-  type: NodePort
+  type: LoadBalancer
+  externalIPs:
+    - 192.168.100.247
   ports:
     - protocol: TCP
       port: 80
       targetPort: 80
-      nodePort: 30080
+    - protocol: TCP
+      port: 443
+      targetPort: 443
