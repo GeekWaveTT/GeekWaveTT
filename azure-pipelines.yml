@@ -1,7 +1,7 @@
 trigger: none
 
 pool:
-  name: UbuntuServer
+  name: PredatorAgent
 
 variables:
   IMAGE_NAME: "portfolio-site"
