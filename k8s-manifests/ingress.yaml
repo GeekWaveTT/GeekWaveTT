@@ -9,10 +9,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - 192.168.100.247       # Replace with your laptop's LAN IP
+        - {{LAN_IP}}       # Replace with your laptop's LAN IP
       secretName: portfolio-tls
   rules:
-    - host: 192.168.100.247     # Replace with your laptop's LAN IP
+    - host: {{LAN_IP}}     # Replace with your laptop's LAN IP
       http:
         paths:
           - path: /
