@@ -1,0 +1,32 @@
+trigger: none
+
+pool:
+  name: PredatorAgentPool
+
+variables:
+  IMAGE_NAME: "portfolio-website"
+  IMAGE_TAG: "latest"
+  NAMESPACE: "portfolio"
+
+stages:
+  - stage: Cleanup
+    displayName: "Cleanup Kubernetes and Docker Resources (K3s)"
+    jobs:
+      - job: CleanupResources
+        displayName: "Delete Kubernetes namespace and Docker image"
+        steps:
+          # Delete namespace if it exists
+          - task: Bash@3
+            displayName: "Delete Kubernetes namespace"
+            inputs:
+              targetType: inline
+              script: |
+                kubectl get namespace $(NAMESPACE) && kubectl delete namespace $(NAMESPACE) || echo "Namespace '$(NAMESPACE)' does not exist"
+
+          # Remove Docker image from K3s container runtime
+          - task: Bash@3
+            displayName: "Remove Docker image from K3s"
+            inputs:
+              targetType: inline
+              script: |
+                docker image inspect $(IMAGE_NAME):$(IMAGE_TAG) && docker rmi $(IMAGE_NAME):$(IMAGE_TAG) || echo "Docker image '$(IMAGE_NAME):$(IMAGE_TAG)' not found"
