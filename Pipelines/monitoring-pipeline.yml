@@ -42,8 +42,8 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          export PATH=$PATH:/usr/local/bin
-          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+          sudo export PATH=$PATH:/usr/local/bin
+          sudo export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
           echo "Adding Grafana Helm repo"
           helm repo add grafana https://grafana.github.io/helm-charts
