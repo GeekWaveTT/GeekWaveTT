@@ -1,0 +1,59 @@
+# My Helm + Grafana Deployment for local K3s cluster.
+# https://aka.ms/yaml
+
+trigger: none
+
+pool:
+  name: PredatorAgentPool  # Self-hosted local agent
+
+variables:
+  NAMESPACE: monitoring
+
+stages:
+- stage: DeployMonitoring
+  displayName: "Install Helm + Deploy Grafana to K3s"
+  jobs:
+  - job: InstallHelm
+    displayName: "Check K3s + Install Helm"
+    steps:
+    - task: Bash@3
+      displayName: "Helm Check + Install Script"
+      inputs:
+        targetType: 'inline'
+        script: |
+          if ! command -v helm &> /dev/null; then
+            echo "Helm not found. Installing..."
+            curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+            sudo apt-get install apt-transport-https --yes
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+            sudo apt-get update
+            sudo apt-get install -y helm
+          else
+            echo "✅ Helm is already installed."
+          fi
+
+  - job: DeployGrafana
+    displayName: "Deploy Grafana with Helm to K3s"
+    dependsOn: InstallHelm
+    steps:
+    - task: Bash@3
+      displayName: "Install Grafana using Helm"
+      inputs:
+        targetType: 'inline'
+        script: |
+          export PATH=$PATH:/usr/local/bin
+          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+          echo "Adding Grafana Helm repo"
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+
+          echo "Installing Grafana..."
+          helm upgrade --install grafana grafana/grafana \
+            --namespace $(NAMESPACE) --create-namespace \
+            --set service.type=NodePort \
+            --set service.nodePort=32044
+
+          echo "✅ Checking deployment status..."
+          kubectl get pods -n $(NAMESPACE)
+          kubectl get svc -n $(NAMESPACE)
