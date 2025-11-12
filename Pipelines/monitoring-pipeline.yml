@@ -21,15 +21,16 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
+         set -e
           echo "🔍 Checking for Helm installation..."
           if ! command -v helm &> /dev/null; then
-          echo "Helm not found. Installing..."
-          curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
-          echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
-          sudo apt-get update -y
-          sudo apt-get install -y helm
+            echo "Helm not found. Installing..."
+            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+            chmod 700 get_helm.sh
+            ./get_helm.sh
+            rm -f get_helm.sh
           else
-          echo "✅ Helm is already installed."
+            echo "✅ Helm is already installed."
           fi
           
   - job: DeployGrafana
