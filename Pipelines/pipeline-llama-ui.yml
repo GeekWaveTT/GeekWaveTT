@@ -14,10 +14,11 @@ stages:
             inputs:
               targetType: inline
               script: |
-                helm repo add ollama https://otwld.github.io/ollama-helm/
-                helm install ollama ollama/ollama
                 kubectl create namespace ai
+                helm repo add ollama https://otwld.github.io/ollama-helm/
+                helm install ollama ollama/ollama --namespace ai
 
+                
   - stage: Install2
     displayName: "Install Open WebUI"
     jobs:
