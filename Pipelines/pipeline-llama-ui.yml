@@ -24,7 +24,7 @@ stages:
       - job: OpenWebUI
         steps:
         - task: Bash@3
-            displayName: "Install OpenWebUI"
+          displayName: "Install OpenWebUI"
           inputs:
             targetType: 'inline'
             script: |
