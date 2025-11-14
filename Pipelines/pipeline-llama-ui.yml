@@ -34,4 +34,4 @@ stages:
                 --set ollama.enabled=true \
                 --set env.OLLAMA_BASE_URL="http://ollama.default.svc.cluster.local:11434" \
                 --set service.type=NodePort \
-                --set service.nodePort=32800 \
+                --set service.nodePort=32280 
