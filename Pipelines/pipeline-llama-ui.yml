@@ -29,7 +29,7 @@ stages:
             targetType: 'inline'
             script: |
               helm repo add open-webui https://helm.openwebui.com/
-                helm install geekchat open-webui/open-webui \
+                helm install openui open-webui/open-webui \
                 --namespace ai \
                 --set ollama.enabled=true \
                 --set env.OLLAMA_BASE_URL="http://ollama.default.svc.cluster.local:11434" \
