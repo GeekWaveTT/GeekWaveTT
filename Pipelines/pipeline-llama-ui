@@ -1,0 +1,33 @@
+trigger: none
+
+pool:
+  name: PredatorAgentPool
+
+stages:
+  - stage: Install1
+    displayName: "Install Ollama"
+    jobs:
+      - job: Ollama
+        steps:
+          - task: Bash@3
+            displayName: "Install Ollama Helm"
+            inputs:
+              targetType: inline
+              script: |
+                helm repo add ollama https://otwld.github.io/ollama-helm/
+                helm install ollama ollama/ollama
+                
+
+  - stage: Install2
+    displayName: "Install Open WebUI"
+    jobs:
+      - job: OpenWebUI
+        steps:
+        - task: Bash@3
+            displayName: "Install OpenWebUI"
+          inputs:
+            targetType: 'inline'
+            script: |
+              helm repo add open-webui https://helm.openwebui.com/
+                helm install geekchat open-webui/open-webui --set ollama.enabled=false \
+                --set env.OLLAMA_BASE_URL="http://ollama.default.svc.cluster.local:11434"
