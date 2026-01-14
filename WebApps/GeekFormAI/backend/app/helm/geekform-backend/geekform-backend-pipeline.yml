@@ -16,7 +16,7 @@ steps:
   inputs:
     command: build
     Dockerfile: WebApps/GeekFormAI/backend/Dockerfile
-    tags: geekform-backend:v1
+    tags: geekform-backend:latest
 
 # 2️⃣ Deploy to k3s via Helm
 - script: |
@@ -25,4 +25,5 @@ steps:
     helm upgrade --install geekform . \
       --set postgres.password=$(POSTGRES_PASSWORD) \
       --set image.pullPolicy=Never
+
   displayName: Deploy via Helm
