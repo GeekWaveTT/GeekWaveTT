@@ -11,6 +11,6 @@ service:
 
 postgres:
   user: geekform
-  password: geekform
+  password: geekformdb
   database: geekformdb
   storage: 1Gi
