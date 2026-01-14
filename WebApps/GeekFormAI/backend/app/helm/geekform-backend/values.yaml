@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: geekform-backend
-  tag: v1
+  tag: latest
   pullPolicy: Never
 
 service:
@@ -14,3 +14,4 @@ postgres:
   password: geekformpw
   database: geekformdb
   storage: 1Gi
+
