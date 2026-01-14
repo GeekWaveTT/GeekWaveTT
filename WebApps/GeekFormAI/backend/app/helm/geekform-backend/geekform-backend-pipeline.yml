@@ -1,0 +1,28 @@
+trigger:
+- none
+
+pool:
+  name:    PredatorAgentPool
+
+variables:
+- group: SQLDB   # links your library
+- name: IMAGE_NAME
+  value: geekform-backend:v1
+
+steps:
+
+# 1️⃣ Build Docker image
+- task: Docker@2
+  displayName: Build Docker image
+  inputs:
+    command: build
+    Dockerfile: WebApps/GeekFormAI/backend/app/Dockerfile
+    tags: |
+      $(IMAGE_NAME)
+
+# 2️⃣ Deploy to k3s via Helm
+- script: |
+    echo "Deploying GeekForm backend to k3s..."
+    helm upgrade --install geekform ./helm/geekform-backend \
+      --set postgres.password=$(POST_GRES_PW)
+  displayName: Deploy via Helm
