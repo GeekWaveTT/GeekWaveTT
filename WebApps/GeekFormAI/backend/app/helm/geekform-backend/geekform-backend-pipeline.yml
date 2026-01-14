@@ -16,7 +16,7 @@ steps:
   displayName: Build Docker image
   inputs:
     command: build
-    Dockerfile: WebApps/GeekFormAI/backend/app/Dockerfile
+    Dockerfile: WebApps/GeekFormAI/backend/Dockerfile
     tags: |
       $(IMAGE_NAME)
 
