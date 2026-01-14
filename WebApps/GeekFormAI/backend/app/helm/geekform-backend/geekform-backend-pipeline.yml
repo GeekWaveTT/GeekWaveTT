@@ -22,9 +22,9 @@ steps:
 
 # 2️⃣ Deploy to k3s via Helm
 - script: |
-- script: |
     echo "Deploying GeekForm backend to k3s..."
     cd WebApps/GeekFormAI/backend/app/helm/geekform-backend
     helm upgrade --install geekform . \
-      --set postgres.password=$(POSTGRES_PASSWORD) 
+      --set postgres.password=$(POSTGRES_PASSWORD) \
+      --set image.pullPolicy=Never
   displayName: Deploy via Helm
