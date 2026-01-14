@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: geekform-backend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+
+postgres:
+  user: geekform
+  password: geekform
+  database: geekformdb
+  storage: 1Gi
