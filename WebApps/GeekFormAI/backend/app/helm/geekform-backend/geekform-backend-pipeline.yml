@@ -7,8 +7,10 @@ pool:
 variables:
 - group: SQLDB   # links your library
 
+
 steps:
 
+# 1️⃣ Build Docker image locally
 - task: Docker@2
   displayName: Build Docker image
   inputs:
@@ -16,19 +18,7 @@ steps:
     Dockerfile: WebApps/GeekFormAI/backend/Dockerfile
     tags: geekform-backend:v1
 
-# 2️⃣ Load the image into k3s (containerd)
-- script: |
-    echo "Checking if Docker image exists..."
-    docker images | grep geekform-backend
-
-    echo "Saving Docker image to tar..."
-    docker save geekform-backend:v1 -o geekform-backend.tar
-
-    echo "Importing image into k3s..."
-    sudo ctr -n k8s.io images import geekform-backend.tar
-  displayName: Load Docker image into k3s
-
-# 3️⃣ Deploy to k3s via Helm
+# 2️⃣ Deploy to k3s via Helm
 - script: |
     echo "Deploying GeekForm backend to k3s..."
     cd WebApps/GeekFormAI/backend/app/helm/geekform-backend
