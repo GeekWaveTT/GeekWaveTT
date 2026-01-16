@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geekform-backend
+  labels:
+    app: geekform-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: geekform-backend
+  template:
+    metadata:
+      labels:
+        app: geekform-backend
+    spec:
+      containers:
+        - name: geekform-backend
+          image: geekform-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_HOST
+              value: geekform-postgres
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: geekform-db-secret
+                  key: user
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: geekform-db-secret
+                  key: password
+            - name: DATABASE_NAME
+              value: geekformdb
