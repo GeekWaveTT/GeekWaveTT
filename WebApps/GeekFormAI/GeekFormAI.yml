@@ -1,0 +1,39 @@
+trigger:
+- none
+
+pool:
+  name: PredatorAgentPool
+
+variables:
+- group: SQLDB   # must contain POSTGRES_PASSWORD
+
+steps:
+
+# 1️⃣ Build Docker image locally
+- script: |
+    echo "Building GeekForm backend Docker image..."
+    docker build -t geekform-backend:latest WebApps/GeekFormAI/backend
+  displayName: Build Docker image
+
+# 2️⃣ Ensure geekdoc namespace exists
+- script: |
+    echo "Ensuring geekdoc namespace exists..."
+    kubectl create namespace geekdoc --dry-run=client -o yaml | kubectl apply -f -
+  displayName: Ensure geekdoc namespace
+
+# 3️⃣ Apply / Update Postgres secret in geekdoc namespace
+- script: |
+    echo "Applying Postgres secret in geekdoc namespace..."
+    kubectl create secret generic geekform-db-secret \
+      --namespace geekdoc \
+      --from-literal=user=geekform \
+      --from-literal=password=$(POSTGRES_PASSWORD) \
+      --dry-run=client -o yaml | kubectl apply -f -
+  displayName: Apply Postgres secret
+
+# 4️⃣ Deploy GeekForm backend manifests into geekdoc namespace
+- script: |
+    echo "Deploying GeekForm backend manifests to geekdoc namespace..."
+    kubectl apply -n geekdoc -f WebApps/GeekFormAI/K3-Deploy/deployment.yaml
+    kubectl apply -n geekdoc -f WebApps/GeekFormAI/K3-Deploy/service.yaml
+  displayName: Deploy to k3s
