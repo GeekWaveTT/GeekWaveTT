@@ -1,39 +1,111 @@
-trigger:
-- none
-
-pool:
-  name: PredatorAgentPool
-
-variables:
-- group: SQLDB   # must contain POSTGRES_PASSWORD
-
-steps:
-
-# 1️⃣ Build Docker image locally
-- script: |
-    echo "Building GeekForm backend Docker image..."
-    docker build -t geekform-backend:latest WebApps/GeekFormAI/backend
-  displayName: Build Docker image
-
-# 2️⃣ Ensure geekdoc namespace exists
-- script: |
-    echo "Ensuring geekdoc namespace exists..."
-    kubectl create namespace geekdoc --dry-run=client -o yaml | kubectl apply -f -
-  displayName: Ensure geekdoc namespace
-
-# 3️⃣ Apply / Update Postgres secret in geekdoc namespace
-- script: |
-    echo "Applying Postgres secret in geekdoc namespace..."
-    kubectl create secret generic geekform-db-secret \
-      --namespace geekdoc \
-      --from-literal=user=geekform \
-      --from-literal=password=$(POSTGRES_PASSWORD) \
-      --dry-run=client -o yaml | kubectl apply -f -
-  displayName: Apply Postgres secret
-
-# 4️⃣ Deploy GeekForm backend manifests into geekdoc namespace
-- script: |
-    echo "Deploying GeekForm backend manifests to geekdoc namespace..."
-    kubectl apply -n geekdoc -f WebApps/GeekFormAI/K3-Deploy/deployment.yaml
-    kubectl apply -n geekdoc -f WebApps/GeekFormAI/K3-Deploy/service.yaml
-  displayName: Deploy to k3s
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: geekform
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: geekform-secrets
+  namespace: geekform
+type: Opaque
+stringData:
+  POSTGRES_USER: geekform
+  POSTGRES_PASSWORD: geekform
+  POSTGRES_DB: geekformdb
+  DATABASE_URL: postgresql://geekform:geekform@postgres:5432/geekformdb
+  OPENAI_API_KEY: sk-REPLACE_ME
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: geekform
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: geekform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:pg15
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: geekform-secrets
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: geekform
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geekform-ai
+  namespace: geekform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: geekform-ai
+  template:
+    metadata:
+      labels:
+        app: geekform-ai
+    spec:
+      containers:
+        - name: api
+          image: geekform-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: geekform-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: geekform-ai
+  namespace: geekform
+spec:
+  selector:
+    app: geekform-ai
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
