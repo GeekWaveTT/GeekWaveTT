@@ -37,6 +37,7 @@ steps:
       --from-literal=POSTGRES_USER=geekform \
       --from-literal=POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
       --from-literal=POSTGRES_DB=geekformdb \
+       --from-literal=DATABASE_URL=postgresql://geekform:$(POSTGRES_PASSWORD)@postgres:5432/geekformdb \
       --from-literal=OPENAI_API_KEY=$(OPENAI_API_KEY) \
       --dry-run=client -o yaml | kubectl apply -f -
   displayName: Apply secrets
