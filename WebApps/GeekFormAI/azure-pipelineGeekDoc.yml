@@ -47,3 +47,13 @@ steps:
     echo "Deploying GeekFormAI to k3s..."
     kubectl apply -f GeekFormAI.yml
   displayName: Deploy GeekFormAI
+# 6 Restart nodes after apply
+- script: |
+    echo "Restarting GeekFormAI deployment..."
+    kubectl rollout restart deployment/geekform-ai -n geekform
+  displayName: Restart API pods
+# 7 Verify Pods are working
+- script: |
+    kubectl get pods -n geekform
+  displayName: Verify pods
+
