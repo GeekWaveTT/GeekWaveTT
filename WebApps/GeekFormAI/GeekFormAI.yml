@@ -13,7 +13,6 @@ stringData:
   POSTGRES_USER: geekform
   POSTGRES_PASSWORD: geekform
   POSTGRES_DB: geekformdb
-  DATABASE_URL: postgresql://geekform:geekform@postgres:5432/geekformdb
   OPENAI_API_KEY: sk-REPLACE_ME
 ---
 apiVersion: v1
@@ -46,7 +45,6 @@ spec:
       containers:
         - name: postgres
           image: pgvector/pgvector:pg15
-          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5432
           envFrom:
@@ -87,10 +85,14 @@ spec:
       labels:
         app: geekform-ai
     spec:
+      # 🔐 Only needed if GH repo is private
+      # imagePullSecrets:
+      #   - name: ghcr-secret
+
       containers:
         - name: api
-          image: geekform-backend:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/GeekWaveTT/geekform-backend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           envFrom:
