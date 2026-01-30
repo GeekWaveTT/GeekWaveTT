@@ -1,0 +1,48 @@
+trigger:
+- none
+
+pool:
+  name: PredatorAgentPool
+
+variables:
+- group: SQLDB        # contains POSTGRES_PASSWORD
+- group: OpenAI       # contains OPENAI_API_KEY
+
+steps:
+
+# 1️⃣ Build Docker image
+- script: |
+    echo "Building GeekFormAI backend image..."
+    docker build -t geekform-backend:latest .
+  displayName: Build Docker image
+
+# 2️⃣ Load image into k3s (local cluster)
+- script: |
+    echo "Loading image into k3s..."
+    sudo k3s ctr images import \
+      $(docker save geekform-backend:latest | gzip)
+  displayName: Load image into k3s
+
+# 3️⃣ Ensure namespace exists
+- script: |
+    echo "Ensuring geekform namespace exists..."
+    kubectl create namespace geekform --dry-run=client -o yaml | kubectl apply -f -
+  displayName: Ensure namespace
+
+# 4️⃣ Apply secrets
+- script: |
+    echo "Applying secrets..."
+    kubectl create secret generic geekform-secrets \
+      --namespace geekform \
+      --from-literal=POSTGRES_USER=geekform \
+      --from-literal=POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+      --from-literal=POSTGRES_DB=geekformdb \
+      --from-literal=OPENAI_API_KEY=$(OPENAI_API_KEY) \
+      --dry-run=client -o yaml | kubectl apply -f -
+  displayName: Apply secrets
+
+# 5️⃣ Deploy GeekFormAI stack
+- script: |
+    echo "Deploying GeekFormAI to k3s..."
+    kubectl apply -f GeekFormAI.yml
+  displayName: Deploy GeekFormAI
