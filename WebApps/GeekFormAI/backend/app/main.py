@@ -6,6 +6,14 @@ from .models import Document
 init_db()
 app = FastAPI()
 
+@app.get("/")
+def root():
+    return {
+        "status": "ok",
+        "message": "FastAPI PDF service is running",
+        "docs": "/docs"
+    }
+
 @app.post("/upload-pdf")
 async def upload_pdf(file: UploadFile = File(...)):
     file_location = f"/tmp/{file.filename}"
