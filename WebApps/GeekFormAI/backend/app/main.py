@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from .pdf_parser import extract_text
 from .database import SessionLocal, init_db, Document
+from .models import Document
 
 init_db()
 app = FastAPI()
