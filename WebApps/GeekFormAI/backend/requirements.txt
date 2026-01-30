@@ -1,6 +1,16 @@
 fastapi
 uvicorn
+
+# PDF handling
 pdfplumber
+pypdf
 python-multipart
+
+# Database
 sqlalchemy
 psycopg2-binary
+pgvector
+
+# Embeddings / ML (CPU-only)
+sentence-transformers
+torch
