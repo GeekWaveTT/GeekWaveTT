@@ -20,12 +20,12 @@ steps:
 
   displayName: Build Docker image
 
-# 2️⃣ Load image into k3s (local cluster)
+# 2️⃣ Load image into k3s (FIXED)
 - script: |
     echo "Loading image into k3s..."
-    sudo k3s ctr images import \
-      $(docker save geekform-backend:latest | gzip)
+    docker save geekform-backend:latest | sudo k3s ctr images import -
   displayName: Load image into k3s
+
 
 # 3️⃣ Ensure namespace exists
 - script: |
