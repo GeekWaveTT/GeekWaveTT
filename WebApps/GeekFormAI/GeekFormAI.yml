@@ -91,7 +91,7 @@ spec:
 
       containers:
         - name: api
-          image: ghcr.io/GeekWaveTT/geekform-backend:latest
+          image: ghcr.io/geekwavett/geekform-backend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
