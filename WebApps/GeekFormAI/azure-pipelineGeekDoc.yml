@@ -7,57 +7,59 @@ pool:
 variables:
 - group: SQLDB        # contains POSTGRES_PASSWORD
 - group: OpenAI       # contains OPENAI_API_KEY
+- group: GHCR         # contains GHCR_USERNAME, GHCR_TOKEN
 
 steps:
 
-# 1️⃣ Build Docker image
+# 1️⃣ Build Docker image (Dockerfile is in backend/)
 - script: |
     echo "Building GeekFormAI backend image..."
     docker build \
-    -t geekform-backend:latest \
-    -f WebApps/GeekFormAI/backend/Dockerfile \
-    WebApps/GeekFormAI/backend
-
+      -t ghcr.io/$(GHCR_USERNAME)/geekform-backend:latest \
+      WebApps/GeekFormAI/backend
   displayName: Build Docker image
 
-# 2️⃣ Load image into k3s (FIXED)
+# 2️⃣ Login to GitHub Container Registry
 - script: |
-    echo "Loading image into k3s..."
-    docker save geekform-backend:latest | sudo k3s ctr images import -
-  displayName: Load image into k3s
+    echo "Logging into GHCR..."
+    echo "$(GHCR_TOKEN)" | docker login ghcr.io \
+      -u $(GHCR_USERNAME) \
+      --password-stdin
+  displayName: Login to GHCR
 
+# 3️⃣ Push image to GHCR
+- script: |
+    echo "Pushing image to GHCR..."
+    docker push ghcr.io/$(GHCR_USERNAME)/geekform-backend:latest
+  displayName: Push image to GHCR
 
-# 3️⃣ Ensure namespace exists
+# 4️⃣ Ensure geekform namespace exists
 - script: |
     echo "Ensuring geekform namespace exists..."
     kubectl create namespace geekform --dry-run=client -o yaml | kubectl apply -f -
   displayName: Ensure namespace
 
-# 4️⃣ Apply secrets
+# 5️⃣ Apply / update Kubernetes secrets
 - script: |
-    echo "Applying secrets..."
+    echo "Applying Kubernetes secrets..."
     kubectl create secret generic geekform-secrets \
       --namespace geekform \
       --from-literal=POSTGRES_USER=geekform \
       --from-literal=POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
       --from-literal=POSTGRES_DB=geekformdb \
-       --from-literal=DATABASE_URL=postgresql://geekform:$(POSTGRES_PASSWORD)@postgres:5432/geekformdb \
+      --from-literal=DATABASE_URL=postgresql://geekform:$(POSTGRES_PASSWORD)@postgres:5432/geekformdb \
       --from-literal=OPENAI_API_KEY=$(OPENAI_API_KEY) \
       --dry-run=client -o yaml | kubectl apply -f -
-  displayName: Apply secrets
+  displayName: Apply app secrets
 
-# 5️⃣ Deploy GeekFormAI stack
+# 6️⃣ Deploy GeekFormAI to k3s
 - script: |
     echo "Deploying GeekFormAI to k3s..."
     kubectl apply -f WebApps/GeekFormAI/GeekFormAI.yml
   displayName: Deploy GeekFormAI
-# 6 Restart nodes after apply
+
+# 7️⃣ Restart API pods to pull new image
 - script: |
     echo "Restarting GeekFormAI deployment..."
     kubectl rollout restart deployment/geekform-ai -n geekform
-  displayName: Restart API pods
-# 7 Verify Pods are working
-- script: |
-    kubectl get pods -n geekform
-  displayName: Verify pods
-
+  displayName: Restart GeekFormAI pods
