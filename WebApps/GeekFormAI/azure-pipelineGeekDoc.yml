@@ -13,7 +13,11 @@ steps:
 # 1️⃣ Build Docker image
 - script: |
     echo "Building GeekFormAI backend image..."
-    docker build -t geekform-backend:latest .
+    docker build \
+    -t geekform-backend:latest \
+    -f WebApps/GeekFormAI/backend/Dockerfile \
+    WebApps/GeekFormAI/backend
+
   displayName: Build Docker image
 
 # 2️⃣ Load image into k3s (local cluster)
