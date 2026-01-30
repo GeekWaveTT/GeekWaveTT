@@ -49,7 +49,7 @@ steps:
 # 5️⃣ Deploy GeekFormAI stack
 - script: |
     echo "Deploying GeekFormAI to k3s..."
-    kubectl apply -f GeekFormAI.yml
+    kubectl apply -f WebApps/GeekFormAI/GeekFormAI.yml
   displayName: Deploy GeekFormAI
 # 6 Restart nodes after apply
 - script: |
